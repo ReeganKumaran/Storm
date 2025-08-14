@@ -1,85 +1,121 @@
 import React, { useEffect, useState } from "react";
 import { useWeather } from "../Context/Weather";
-import { ArrowUp, Sunrise, Sunset , Gauge} from "lucide-react";
+import { ArrowUp, Sunrise, Sunset, Gauge, Eye, Droplets } from "lucide-react";
 
 function WeatherDetailsCard() {
-  const weatherAPI = useWeather()[0];
-  console.log(weatherAPI);
+  const [weatherAPI] = useWeather();
   const [weatherDetails, setWeatherDetails] = useState({
     sunRise: null,
     sunSet: null,
     pressure: null,
     windDeg: null,
   });
-  const format = (time) => {
-    const date = new Date(time * 1000);
-    return `${
-      !(date.getHours() % 12) ? "12" : date.getHours() % 12
-    }:${date.getMinutes()} ${date.getHours() / 12 ? "PM" : "AM"}`;
+
+  const formatTime = (timestamp) => {
+    if (!timestamp) return "--";
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
   };
-  const degFormat = (deg) => {
-    const direction = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    return direction[(deg / 45) | 0];
+
+  const getWindDirection = (deg) => {
+    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    return directions[Math.round(deg / 45) % 8];
   };
+
   useEffect(() => {
     if (!weatherAPI) return;
-    // const date = new Date(weatherAPI.dt * 1000)
-    // console.log( )
-    const data = {
-      sunRise: format(weatherAPI.sys.sunrise),
-      sunSet: format(weatherAPI.sys.sunset),
-      pressure: `${weatherAPI.main.pressure} mb`,
-      deg: weatherAPI.wind.deg,
-      degTxt: degFormat(weatherAPI.wind.deg),
-    };
-    console.log(data);
-    setWeatherDetails(data);
+    
+    setWeatherDetails({
+      sunRise: formatTime(weatherAPI.sys?.sunrise),
+      sunSet: formatTime(weatherAPI.sys?.sunset),
+      pressure: weatherAPI.main?.pressure,
+      deg: weatherAPI.wind?.deg,
+      degTxt: getWindDirection(weatherAPI.wind?.deg),
+      visibility: weatherAPI.visibility,
+      cloudiness: weatherAPI.clouds?.all,
+    });
   }, [weatherAPI]);
+
   return (
-    <div className="container-fluid">
-      <div className="row">
-        <div className="col">
-          <div className="card ">
-            <h4 className="mb-2 ">Your's Location</h4>
-            <div className="row-ls justify-space-between flex-grow-all g-4 ">
-              <div className="card p-2 br-2">
-                <div className="row align-center">
-                  <Sunrise className="txt-yellow" />
-                  <div className="row ms-2 f-direction-col">
-                    <h5>Sunrise</h5>
-                    <p className="txt-gray">{weatherDetails?.sunRise}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="card p-2 br-2">
-                <div className="row align-center">
-                  <Sunset className="txt-light-blue" />
-                  <div className="row ms-2 f-direction-col">
-                    <h5>Sunset</h5>
-                    <p className="txt-gray">{weatherDetails?.sunSet}</p>
-                  </div>
-                </div>
+    <div className="glass-card h-full">
+      <h3 className="text-xl font-semibold mb-4 text-white">Weather Details</h3>
+      <div className="space-y-3">
+        {/* Sunrise & Sunset */}
+        <div className="grid grid-cols-1 gap-3">
+          <div className="weather-stat">
+            <div className="flex items-center gap-2 w-full">
+              <Sunrise className="text-amber-400" size={20} />
+              <div className="flex-1">
+                <p className="text-xs text-slate-400">Sunrise</p>
+                <p className="text-sm font-semibold">{weatherDetails?.sunRise}</p>
               </div>
             </div>
-            <div className="row-ls justify-space-between flex-grow-all g-4 mt-4">
-              <div className="card p-2 br-2">
-               <div className="row align-center">
-                <ArrowUp className="txt-light-green" style={{rotate:weatherDetails?.deg+ "deg"}}/>
-                  {/* <Sunset className="txt-light-blue" /> */}
-                  <div className="row ms-2 f-direction-col">
-                    <h5>Wind</h5> 
-                    <p className="txt-gray">{weatherDetails?.deg}° {weatherDetails?.degTxt}</p>
-                  </div>
-                </div>
+          </div>
+          
+          <div className="weather-stat">
+            <div className="flex items-center gap-2 w-full">
+              <Sunset className="text-orange-400" size={20} />
+              <div className="flex-1">
+                <p className="text-xs text-slate-400">Sunset</p>
+                <p className="text-sm font-semibold">{weatherDetails?.sunSet}</p>
               </div>
-              <div className="card p-2 br-2">
-                <div className="row align-center">
-                 <Gauge className="txt-orange"/>
-                  <div className="row ms-2 f-direction-col">
-                    <h5>Pressure</h5>
-                    <p className="txt-gray">{weatherDetails?.pressure}</p>
-                  </div>
-                </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Wind & Pressure */}
+        <div className="grid grid-cols-1 gap-3">
+          <div className="weather-stat">
+            <div className="flex items-center gap-2 w-full">
+              <ArrowUp 
+                className="text-green-400 transition-transform" 
+                style={{ transform: `rotate(${weatherDetails?.deg || 0}deg)` }}
+                size={20}
+              />
+              <div className="flex-1">
+                <p className="text-xs text-slate-400">Wind Direction</p>
+                <p className="text-sm font-semibold">
+                  {weatherDetails?.deg}° {weatherDetails?.degTxt}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="weather-stat">
+            <div className="flex items-center gap-2 w-full">
+              <Gauge className="text-blue-400" size={20} />
+              <div className="flex-1">
+                <p className="text-xs text-slate-400">Pressure</p>
+                <p className="text-sm font-semibold">{weatherDetails?.pressure} hPa</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Visibility & Cloudiness */}
+        <div className="grid grid-cols-1 gap-3">
+          <div className="weather-stat">
+            <div className="flex items-center gap-2 w-full">
+              <Eye className="text-purple-400" size={20} />
+              <div className="flex-1">
+                <p className="text-xs text-slate-400">Visibility</p>
+                <p className="text-sm font-semibold">
+                  {weatherDetails?.visibility ? `${(weatherDetails.visibility / 1000).toFixed(1)} km` : "--"}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="weather-stat">
+            <div className="flex items-center gap-2 w-full">
+              <Droplets className="text-slate-400" size={20} />
+              <div className="flex-1">
+                <p className="text-xs text-slate-400">Cloudiness</p>
+                <p className="text-sm font-semibold">{weatherDetails?.cloudiness}%</p>
               </div>
             </div>
           </div>

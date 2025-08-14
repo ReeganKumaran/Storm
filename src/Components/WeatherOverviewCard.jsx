@@ -1,94 +1,92 @@
 import { useWeather } from "../Context/Weather";
-import { Droplets, Wind, ArrowUp, ArrowDown } from "lucide-react";
-import "../Style/WeatherOverviewCard.css";
+import { Droplets, Wind, ArrowUp, ArrowDown, MapPin, Thermometer } from "lucide-react";
+
 function WeatherOverviewCard() {
   const [currentWeather, location] = useWeather();
-  const oneDecimal = (num) => {
-    if (typeof num !== "number" || isNaN(num)) {
-      return null;
+  
+  const formatTemp = (temp) => {
+    if (typeof temp !== "number" || isNaN(temp)) {
+      return "--";
     }
-    return (num | 0) + "°";
+    return Math.round(temp) + "°";
   };
+
   return (
-    <>
-      <div className="card h-100p">
-            <h4 className="mb-2">Your's Location</h4>
-        <div className="row-ms">
-          <div className="col">
-            <div className="row d-flex align-end">
-              <h2>{location?.name}</h2>, {location?.state}
-            </div>
-            <div className="row">{location?.country}</div>
-            <div className="row">
-              <div className="col d-flex">
-                <h1 className="tempShow">
-                  {oneDecimal(currentWeather?.main.temp)}
-                </h1>
-                <div className="row mt-2 ms-2 justify-center align-center f-direction-col">
-                  <div className="row">
-                    Feel like {oneDecimal(currentWeather?.main.feels_like)}
-                  </div>
-                  <div className="row">
-                    <div className=" txt-red d-flex ">
-                      <ArrowUp strokeWidth={2} size={15} />
-                      {oneDecimal(currentWeather?.main.temp_min)}
-                    </div>
-                    <div className=" txt-blue d-flex">
-                      {" "}
-                      <ArrowDown strokeWidth={2} size={15} />
-                      {oneDecimal(currentWeather?.main.temp_max)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col">
-                <div className="row">
-                  <span className="d-flex align-center txt-blue">
-                    <Droplets size={25} strokeWidth={2.5} absoluteStrokeWidth />
-                  </span>
-                  <div className="d-flex f-direction-col">
-                    <div className="col">
-                      <h5>Humidity</h5>
-                    </div>
-                    <div className="col">
-                      <p>{currentWeather?.main.humidity}%</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="col">
-                <div className="row">
-                  <span className="d-flex align-center txt-light-blue">
-                    <Wind size={25} strokeWidth={2.5} absoluteStrokeWidth />
-                  </span>
-                  <div className="col">
-                    <div className="row">
-                      <h5>Wind Speed</h5>
-                    </div>
-                    <div className="row">
-                      <p>{currentWeather?.wind.speed}m/s</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col">
-            <div className="d-flex relative justify-center">
-              <img
-                src={`https://openweathermap.org/img/wn/${currentWeather?.weather[0].icon}@4x.png`}
-                alt="image"
-              />
-              <p className="absolute buttom-5 txt-center">
-                {currentWeather?.weather[0].description}
+    <div className="glass-card h-full">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left Section - Location and Temperature */}
+        <div className="flex-1 space-y-4">
+          {/* Location */}
+          <div className="flex items-center gap-2 text-slate-300">
+            <MapPin className="text-blue-400" size={20} />
+            <div>
+              <h2 className="text-2xl font-bold text-white">
+                {location?.name || "Loading..."}
+              </h2>
+              <p className="text-sm">
+                {location?.state && `${location.state}, `}{location?.country}
               </p>
             </div>
           </div>
+
+          {/* Main Temperature */}
+          <div className="flex items-center gap-4">
+            <div className="text-7xl font-bold text-white">
+              {formatTemp(currentWeather?.main.temp)}
+            </div>
+            <div className="space-y-2">
+              <div className="text-sm text-slate-400">
+                Feels like {formatTemp(currentWeather?.main.feels_like)}
+              </div>
+              <div className="flex gap-3">
+                <div className="flex items-center gap-1 text-red-400">
+                  <ArrowUp size={16} />
+                  <span className="text-sm">{formatTemp(currentWeather?.main.temp_max)}</span>
+                </div>
+                <div className="flex items-center gap-1 text-blue-400">
+                  <ArrowDown size={16} />
+                  <span className="text-sm">{formatTemp(currentWeather?.main.temp_min)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Weather Stats */}
+          <div className="grid grid-cols-2 gap-4 pt-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Droplets className="text-blue-400" size={24} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400">Humidity</p>
+                <p className="text-lg font-semibold">{currentWeather?.main.humidity}%</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-cyan-500/20 rounded-lg">
+                <Wind className="text-cyan-400" size={24} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400">Wind Speed</p>
+                <p className="text-lg font-semibold">{currentWeather?.wind.speed} m/s</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Section - Weather Icon */}
+        <div className="flex flex-col items-center justify-center">
+          <img
+            className="w-40 h-40 drop-shadow-2xl"
+            src={`https://openweathermap.org/img/wn/${currentWeather?.weather[0].icon}@4x.png`}
+            alt="Weather"
+          />
+          <p className="text-lg capitalize text-slate-300 text-center">
+            {currentWeather?.weather[0].description}
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
